@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(p8105.datasets)
 library(dplyr)
+library(viridis)
+library(ggridges) 
+library(patchwork)
 data("instacart")
 ```
 
@@ -29,18 +32,23 @@ arrange(desc(n))
 
 ```{r}
 instacart %>%
-count(aisle_id) %>%
-filter(n> 10000) %>%
-ggplot(aes(x = aisle_id , y = n)) + geom_point() + 
+group_by(aisle) %>%
+summarize(n_aisle = n()) %>%
+filter(n_aisle> 10000) %>%
+arrange((desc(n_aisle))) %>%
+ggplot(aes(x = aisle , y = n_aisle,color=aisle)) + geom_point() + 
 labs(
     title = "Number of Items Ordered in Each Aisle", 
     x = "Aisle",
     y = "Number of Items Ordered (n)",
     caption = "This plot shows the number of items ordered in each aisle, limited to aisles with more than 10,000 items ordered" ) + 
-theme(
+viridis::scale_color_viridis(discrete = TRUE) + 
+  theme_minimal() + 
+  theme(
     plot.title = element_text(hjust = 0.5, size = 14),   
-    plot.caption = element_text(hjust = 0, face = "italic")
-)
+    plot.caption = element_text(hjust = 0, face = "italic"), 
+    legend.position = "none", 
+    axis.text.x = element_text(angle=70, hjust=1) ) 
 ```
 
 ```{r} 
@@ -64,16 +72,72 @@ filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream"))  %>%
 pivot_wider(names_from = "order_dow", values_from = "mean_hour") %>%
 knitr::kable(digits = 3)
 ```
-
+## Question 2: 
 ```{r}
 data("brfss_smart2010") 
 ```
 
 ```{r} 
-brfss_smart2010 %>% 
-janitor::clean_names() 
+clean_brfss_data = brfss_smart2010 %>% 
+janitor::clean_names() %>% 
+separate(locationdesc, into = c("state", "county"), sep=3) %>% 
+select(-locationabbr) %>% 
+mutate(
+topic = "Overall Health", 
+response = forcats::fct_relevel(response, c("Poor", "Fair", "Good", "Very Good", "Excellent")) )  %>%
+filter(response %in% c("Poor", "Fair", "Good", "Very Good", "Excellent")) 
+clean_brfss_data
 ```
 
+```{r} 
+clean_brfss_data %>% 
+filter(year == 2002) %>%
+group_by (state)  %>%
+summarize(n_locations = n_distinct(county)) %>%
+filter(n_locations >= 7) %>%
+arrange(n_locations) 
+```
+* Pennslyvania, Massachusetts, New Jersey, Connecticut, Florida, North Carolina were all observed at 7 or more locations in 2002.  
+```{r}
+clean_brfss_data %>% 
+filter(year == 2010) %>%
+group_by (state)  %>%
+summarize(n_locations = n_distinct(county)) %>%
+filter(n_locations >= 7) %>%
+arrange(n_locations)
+```
+* Florida, New Jersey, Texas, California, Maryland, North Carolina, Nebraska, Washington, Massachusettes, New York, Ohio, Colorodo, Pennsylvania, South Carolina were all observed at 7 or more locations in 2002. 
 
+```{r}
+excellent_data=clean_brfss_data %>%
+filter(response=="Excellent")%>% 
+group_by(state, response,  year) %>% 
+summarize(mean_value = mean(data_value)) 
+excellent_data
+```
 
+```{r}
+excellent_data %>%
+ggplot(aes(x = year , y = mean_value, color=state)) + geom_line() + 
+labs(
+    title = "Average Value Over Time within a State", 
+    x = "Year",
+    y = "Average Value") + 
+viridis::scale_color_viridis(discrete = TRUE) + 
+  theme_minimal() + 
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14), 
+    axis.text.x = element_text(angle=70, hjust=1))
+```
 
+Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
+
+```{r} 
+
+```
+
+Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
+
+## Question 3: 
+```{r} 
+```
