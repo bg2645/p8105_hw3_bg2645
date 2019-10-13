@@ -166,8 +166,8 @@ mutate(activity_min = stringr::str_replace(activity_min, "activity_", ""), activ
 accel_data
 ```
 
-* There were `r nrow(accel_data)` observations and `r ncol(accel_data)` variables in the `accel_data` dataset. 
-* The key variables in the `accel_data` dataset was the week, day id, day, activity in minutes, activity count, and variables determining whether the day was a weekday or not. 
+* There were `r nrow(accel_data)` observations and `r ncol(accel_data)` variables in the `accel_data` dataset. The mean activity count was `r mean(pull(accel_data, activity_count))`. 
+* The key variables in the `accel_data` dataset was the week, day id, day, activity in minutes, activity count, and variables determining whether the day was a weekday or not. The day variable was a factor variable that was categorized into levels. 
 
 ```{r}
 total_activity_data = accel_data %>%
