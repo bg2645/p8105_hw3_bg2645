@@ -81,13 +81,13 @@ data("brfss_smart2010")
 clean_brfss_data = brfss_smart2010 %>% 
 janitor::clean_names() %>% 
 separate(locationdesc, into = c("state", "county"), sep=3) %>% 
-select(-locationabbr) %>% 
-mutate(
-topic = "Overall Health", 
-response = forcats::fct_relevel(response, c("Poor", "Fair", "Good", "Very Good", "Excellent")) )  %>%
-filter(response %in% c("Poor", "Fair", "Good", "Very Good", "Excellent")) 
+mutate(county= stringr::str_replace(county, "- ", "")) %>% 
+select(-locationabbr, -location_id, -data_value_footnote_symbol, -data_value_footnote) %>% 
+filter(topic == "Overall Health")%>% 
+mutate(response = forcats::fct_relevel(response, c("Poor", "Fair", "Good", "Very Good", "Excellent")))  
 clean_brfss_data
 ```
+
 
 ```{r} 
 clean_brfss_data %>% 
@@ -109,14 +109,15 @@ arrange(n_locations)
 * Florida, New Jersey, Texas, California, Maryland, North Carolina, Nebraska, Washington, Massachusettes, New York, Ohio, Colorodo, Pennsylvania, South Carolina were all observed at 7 or more locations in 2002. 
 
 ```{r}
-excellent_data=clean_brfss_data %>%
+excellent_data = clean_brfss_data %>%
 filter(response=="Excellent")%>% 
-group_by(state, response,  year) %>% 
+group_by(year, state, county) %>% 
 summarize(mean_value = mean(data_value)) 
 excellent_data
 ```
 
 ```{r}
+
 excellent_data %>%
 ggplot(aes(x = year , y = mean_value, color=state)) + geom_line() + 
 labs(
@@ -133,11 +134,46 @@ viridis::scale_color_viridis(discrete = TRUE) +
 Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
 
 ```{r} 
-
+plot_2006 = 
+clean_brfss_data %>%
+  filter(state == "NY", year == "2006") %>%
+  ggplot(aes(x = response, y = data_value, color = response))+
+  geom_point(alpha = 0.5)+
+  labs(
+    title = "NY State Distribution in 2006",
+    x = "Responses",
+    y = "Data Values") 
+plot_2006
 ```
 
 Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
 
 ## Question 3: 
-```{r} 
+```{r}
+accel_data = 
+  read_csv("./Data/accel_data.csv") %>% 
+janitor::clean_names() %>% 
+pivot_longer( 
+  activity_1:activity_1440, 
+  names_to = "activity_min", 
+  values_to = "activity_count") %>%
+mutate(activity_min = stringr::str_replace(activity_min, "activity_", "")) %>% 
+mutate(activity_min = as.numeric(activity_min)) %>%
+mutate(weekday = day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), weekend = day %in% c("Saturday", "Sunday"))
+accel_data
 ```
+
+
+```{r}
+total_activity_data = accel_data %>%
+  group_by(day) %>%
+  summarize(total_activity = mean(activity_count)) %>%
+  arrange(desc(total_activity))
+total_activity_data 
+```
+
+```{r}
+```
+
+
+Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. 
