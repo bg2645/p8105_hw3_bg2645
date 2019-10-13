@@ -21,7 +21,7 @@ data("instacart")
 
 * There were `r nrow(instacart)` observations and `r ncol(instacart)` variables in the `instacart` dataset. 
 * The key variables in the `instacart` dataset were the porducts that were ordered, the order in which they were added into the cart, if this item has previously been reordered, what time and day of week the order was placed, and the aisle and department for each product, and the unique user_id for each customer. 
-*Thusased on the observations you can see that for example, on what day of the which and on which hour did they place an order for bulgarian yoghurt, which aisle and department this item belongs to, if they had previously ordered it before and how many days it had been since their last order, and in what order they had put this item in their cart. 
+*Thus, based on the observations you can see that for example, on what day of the which and on which hour did they place an order for bulgarian yoghurt, which aisle and department this item belongs to, if they had previously ordered it before and how many days it had been since their last order, and in what order they had put this item in their cart. 
 
 ```{r} 
 instacart %>%
