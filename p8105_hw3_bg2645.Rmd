@@ -8,7 +8,7 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-## Question 1: 
+## Question 1
 ```{r} 
 library(tidyverse)
 library(p8105.datasets)
@@ -31,6 +31,7 @@ arrange(desc(n))
 * There are 134 aisles in instacart, the most ordered items are from aisle 83, 24, and 123 respectively - in which aisle 83 had the most ordered items out out of all the aisles. 
 
 
+**Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered**
 ```{r}
 instacart %>%
 group_by(aisle) %>%
@@ -52,6 +53,7 @@ viridis::scale_color_viridis(discrete = TRUE) +
     axis.text.x = element_text(angle=70, hjust=1) ) 
 ```
 
+**Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits" - include the number of times each item is ordered**
 ```{r} 
 top3_data = instacart %>%
 filter(aisle %in% c("baking ingredients", "dog food care","packaged vegetables fruits")) %>%
@@ -63,6 +65,7 @@ knitr::kable()
 top3_data
 ```
 
+**Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week** 
 ```{r} 
 instacart %>%
 select(product_name, order_dow, order_hour_of_day) %>%
@@ -75,11 +78,13 @@ filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream"))  %>%
 pivot_wider(names_from = "order_dow", values_from = "mean_hour") %>%
 knitr::kable(digits = 3)
 ```
-## Question 2: 
+
+## Question 2
 ```{r}
 data("brfss_smart2010") 
 ```
 
+**Data Cleaning**
 ```{r} 
 clean_brfss_data = brfss_smart2010 %>%
 janitor::clean_names() %>%
@@ -92,7 +97,7 @@ select(-state, -location_id, -data_value_footnote_symbol, -data_value_footnote)
 clean_brfss_data
 ```
 
-
+**States were observed at 7 or more locations in 2002** 
 ```{r} 
 clean_brfss_data %>% 
 filter(year == 2002) %>%
@@ -101,7 +106,9 @@ summarize(n_locations = n_distinct(county)) %>%
 filter(n_locations >= 7) %>%
 arrange(n_locations) 
 ```
-* Connecticut, Florida, North Carolina, Massachusettes, New Jersey, and Pennslyvania were all observed at 7 or more locations in 2002. Thus, 6 states were observed at 7 or more locations.   
+* Connecticut, Florida, North Carolina, Massachusettes, New Jersey, and Pennslyvania were all observed at 7 or more locations in 2002. Thus, 6 states were observed at 7 or more locations. 
+
+**States were observed at 7 or more locations in 2010** 
 ```{r}
 clean_brfss_data %>% 
 filter(year == 2010) %>%
@@ -112,6 +119,7 @@ arrange(n_locations)
 ```
 * Colorado, Pennslyvania, South Carolina, Ohio, Massachusettes, New York, Nebraska, Washington, California, Maryland, North Carolina, Texas, New Jersey, and Florida were all observed at 7 or more locations in 2010. Thus 14 states were observed at 7 more more locations.
 
+**Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state** 
 ```{r}
 excellent_data = clean_brfss_data %>%
 filter(response=="Excellent")%>% 
@@ -120,6 +128,7 @@ summarize(mean_value = mean(data_value))
 excellent_data
 ```
 
+**Make a “spaghetti” plot of this average value over time within a state** 
 ```{r}
 
 excellent_data %>%
@@ -135,8 +144,7 @@ viridis::scale_color_viridis(discrete = TRUE) +
     axis.text.x = element_text(angle=70, hjust=1))
 ```
 
-Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
-
+**Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State**
 ```{r} 
 combined_plot = 
 clean_brfss_data %>%
@@ -153,9 +161,10 @@ twopanel_plot = combined_plot %>%
 twopanel_plot
 ```
 
-Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
 
-## Question 3: 
+## Question 3 
+
+**Load, tidy, and otherwise wrangle the data** 
 ```{r}
 accel_data = 
   read_csv("./Data/accel_data.csv") %>% 
@@ -172,9 +181,10 @@ mutate(activity_min = stringr::str_replace(activity_min, "activity_", ""),
 accel_data
 ```
 
-* There were `r nrow(accel_data)` observations and `r ncol(accel_data)` variables in the `accel_data` dataset. The mean activity count was `r mean(pull(accel_data, activity_count))`. 
+* There were `r nrow(accel_data)` observations and `r ncol(accel_data)` variables in the `accel_data` dataset. The mean activity count was `r mean(pull(accel_data, activity_count))`. Weekday and Weekend are logical variables in which the values are either True or False, depending on if the day is a a weekday or not. 
 * The key variables in the `accel_data` dataset was the week, day id, day, activity in minutes, activity count, and variables determining whether the day was a weekday or not. The day variable was a factor variable that was categorized into levels. 
 
+**Aggregate across minutes to create a total activity variable for each day, and create a table showing these totals**
 ```{r}
 total_activity_data = accel_data %>%
   group_by(day) %>%
@@ -184,13 +194,15 @@ total_activity_data
 ```
 
 * no trend was observed, however Friday had the highest total_activity value. 
+
+**Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week**
 ```{r}
 accel_data %>%
 group_by(day_id, day) %>% 
 summarize(total_activity = sum(activity_count)) %>% 
 ggplot(aes(x = day_id, y = total_activity, color = day)) + geom_point() + geom_line() +
 labs(title = "Activity Time by Day", 
-     x = "Day ID",
+     x = "Day of Study",
      y = "Total Activity Time") + 
   viridis::scale_color_viridis(discrete = TRUE) + 
   theme_minimal() + 
@@ -199,4 +211,4 @@ labs(title = "Activity Time by Day",
     axis.text.x = element_text(angle=70, hjust=1))
 ```
 
-* Based on the plot above, total activity time decreases on weekends compared to weekdays. Activity level on weekdays seemed to be more constant across days. There was drastic spike in actvity levels on Monday on day 10 to ~day 16 and there was  also another drastic spike in activity level on Friday from day 22 to 28. 
+* Based on the plot above, total activity time decreases on weekends compared to weekdays. Activity level on weekdays seemed to be more constant across days. There was  spike in actvity levels on Mondays on from ~day 9 to ~day 16 and there was  also another  spike in activity level on Fridays from day 22 to 28. You can see that on Saturdays starting from ~day 14 the activity level goes to zero and remains there. 
